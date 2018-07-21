@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/cinbishop/copabot/issues"
   },
-  "homepage": "https://github.com/cinbishop/copabot#readme"
+  "homepage": "https://github.com/cinbishop/copabot#readme",
+  "dependencies": {
+    "discord.js": "11.3.2",
+    "enmap": "2.6.3",
+    "enmap-sqlite": "2.0.3",
+    "node-schedule": "1.3.0"
+  }
 }

@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const Enmap = require("enmap");
 const Provider = require("enmap-sqlite");
 const Schedule = require("node-schedule");
-
+const https = require("https");
 const fs = require("fs");
 
 const client = new Discord.Client();
@@ -11,11 +11,16 @@ const config = require("./auth.json");
 client.schedule = Schedule;
 client.discord = Discord;
 client.config = config;
+client.https = https;
+
+client.players = new Enmap({provider: new Provider({name: "players"})});
+client.teams = new Enmap({provider: new Provider({name: "teams"})});
 
 const functions = require("./functions.js")(client);
 
 client.on("ready" , () => {
 	console.log("Kicking off.");
+	client.functions.getFPLData();
 ;});
 
 fs.readdir("./events/", (err, files) => {
