@@ -30,6 +30,7 @@ client.on("ready" , () => {
 	});
 	client.gameweeks.set('pswarning',0);
 	client.gameweeks.set('warning',0);
+	client.user.setActivity('!help for a list of commands', { type: 'PLAYING' });
 });
 
 fs.readdir("./events/", (err, files) => {
