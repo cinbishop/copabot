@@ -36,6 +36,10 @@ module.exports = function (client) {
 						team.short_name = team.short_name.toLowerCase();
 						client.teams.set(team.short_name.toLowerCase(),team);
 					});
+					/*! MAKE FIXTURES ENMAP **/
+					data.next_event_fixtures.forEach(function(fixture,i){
+						client.fixtures.set(i,fixture);
+					});
 					/*! MAKE GAMEWEEKS ENMAP **/
 					let preseason = data['current-event'] == null ? true : false;
 
@@ -122,6 +126,21 @@ module.exports = function (client) {
 		return botresponse;
 	},
 
+	functions.formatGWSchedule = function() {
+		let teamsMap = new Map();
+		let nextGW = client.gameweeks.get('nextgw');
+		let botresponse = '**'+nextGW.name+'**\n';
+		client.teams.array().forEach(function(team){
+			teamsMap.set(team.id, team.short_name);
+		});
+		client.fixtures.array().forEach(function(fixture){
+			var home = teamsMap.get(fixture.team_h).toUpperCase();
+			var away = teamsMap.get(fixture.team_a).toUpperCase();
+			botresponse += home + ' v ' +away +'\n';
+		});
+		return botresponse;
+	},
+
 	functions.getTeam = function(team) {
 		const reqTeam = client.teams.get(team);
 		let botresponse = '**'+client.functions.formatTeamName(reqTeam.name)+' - '+ reqTeam.short_name.toUpperCase() +'**\n\n';
@@ -131,7 +150,6 @@ module.exports = function (client) {
 		let forwards = '**FWD**\n';
 
 		const teamPlayers = client.players.findAll('team',team);
-		console.log(client.players);
 		teamPlayers.forEach(function(player){
 			let formattedPlayer = player.web_name + ' - £' + client.functions.formatPrice(player.now_cost.toString()) + '\n';
 			if(player.element_type == 'gkp') goalies += formattedPlayer;
