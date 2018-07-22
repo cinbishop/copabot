@@ -1,6 +1,16 @@
 module.exports = function (client) {
 	var functions = {};
 
+	functions.warningChron = function(reset) {
+		const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
+			client.guilds.array().forEach(function(guild){
+				if(reset) client.gameweeks.set('warning',0);
+				let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
+				defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
+			});
+		});
+	},
+
 	functions.getFPLData = function() {
 		let requestUrl = 'https://fantasy.premierleague.com/drf/bootstrap-static';
 
@@ -16,30 +26,39 @@ module.exports = function (client) {
 					data = JSON.parse(data);
 					/*! MAKE PLAYER ENMAP **/
 					data.elements.forEach(function(player,i){
-						/*! SET TEAM TO TEAM NAME **/
-						data.teams.forEach(function(team){
-							if(player.team == team.id) {
-								player.team = team.short_name.toLowerCase();
-							}
-						});
-						/*! SET ELEMENT TYPE TO POSITION NAME **/
-						data.element_types.forEach(function(position){
-							if(player.element_type == position.id) {
-								player.element_type = position.singular_name_short.toLowerCase();
-							}
-						});
 						client.players.set(player.id.toString(),player);
 					});
 					/*! MAKE TEAM ENMAP **/
 					data.teams.forEach(function(team){
 						team.name = team.name.toLowerCase();
 						team.short_name = team.short_name.toLowerCase();
-						client.teams.set(team.short_name.toLowerCase(),team);
+						client.teams.set(team.short_name,team);
 					});
 					/*! MAKE FIXTURES ENMAP **/
 					data.next_event_fixtures.forEach(function(fixture,i){
 						client.fixtures.set(i,fixture);
 					});
+					/*! MAKE TEAM AND POSITION MAPS **/
+					var teamsMapID = new Map();
+					var posMapID = new Map();
+					var teamsMapName = new Map();
+					var posMapName = new Map();
+
+					client.teamsMapID = teamsMapID;
+					client.posMapID = posMapID;
+					client.teamsMapName = teamsMapName;
+					client.posMapName = posMapName;
+
+					client.teams.array().forEach(function(team){
+						client.teamsMapID.set(team.id, team.short_name);
+						client.teamsMapName.set(team.short_name,team.id);
+					});
+
+					data.element_types.forEach(function(pos){
+						client.posMapID.set(pos.id, pos.singular_name_short.toLowerCase());
+						client.posMapName.set(pos.singular_name_short.toLowerCase(),pos.id);
+					});
+
 					/*! MAKE GAMEWEEKS ENMAP **/
 					let preseason = data['current-event'] == null ? true : false;
 
@@ -56,21 +75,10 @@ module.exports = function (client) {
 					/*! TRIGGER CHRON TO UPDATE WARNING **/
 					if(preseason && psWarningScheduled == 0) {
 						client.gameweeks.set('pswarning',1);
-						const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
-							client.guilds.array().forEach(function(guild){
-								let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
-								defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
-							});
-						});
+						client.functions.warningChron(false);
 					} else if(!preseason && warningScheduled == 0) {
 						client.gameweeks.set('warning',1);
-						const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
-							client.gameweeks.set('warning',0);
-							client.guilds.array().forEach(function(guild){
-								let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
-								defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
-							});
-						});
+						client.functions.warningChron(true);
 					}
 					console.log('FPL data updated.');
 				} catch (e) {
@@ -127,15 +135,11 @@ module.exports = function (client) {
 	},
 
 	functions.formatGWSchedule = function() {
-		let teamsMap = new Map();
 		let nextGW = client.gameweeks.get('nextgw');
 		let botresponse = '**'+nextGW.name+'**\n';
-		client.teams.array().forEach(function(team){
-			teamsMap.set(team.id, team.short_name);
-		});
 		client.fixtures.array().forEach(function(fixture){
-			var home = teamsMap.get(fixture.team_h).toUpperCase();
-			var away = teamsMap.get(fixture.team_a).toUpperCase();
+			var home = client.teamsMapID.get(fixture.team_h).toUpperCase();
+			var away = client.teamsMapID.get(fixture.team_a).toUpperCase();
 			botresponse += home + ' v ' +away +'\n';
 		});
 		return botresponse;
@@ -143,19 +147,21 @@ module.exports = function (client) {
 
 	functions.getTeam = function(team) {
 		const reqTeam = client.teams.get(team);
+		const teamID = client.teamsMapName.get(team);
 		let botresponse = '**'+client.functions.formatTeamName(reqTeam.name)+' - '+ reqTeam.short_name.toUpperCase() +'**\n\n';
 		let goalies = '**GKP**\n'; 
 		let defenders = '**DEF**\n';
 		let midfielders = '**MID**\n';
 		let forwards = '**FWD**\n';
 
-		const teamPlayers = client.players.findAll('team',team);
+		const teamPlayers = client.players.findAll('team',teamID);
 		teamPlayers.forEach(function(player){
 			let formattedPlayer = player.web_name + ' - £' + client.functions.formatPrice(player.now_cost.toString()) + '\n';
-			if(player.element_type == 'gkp') goalies += formattedPlayer;
-			if(player.element_type == 'def') defenders += formattedPlayer;
-			if(player.element_type == 'mid') midfielders += formattedPlayer;
-			if(player.element_type == 'fwd') forwards += formattedPlayer;
+			let playerPos = client.posMapID.get(player.element_type);
+			if(playerPos == 'gkp') goalies += formattedPlayer;
+			if(playerPos == 'def') defenders += formattedPlayer;
+			if(playerPos == 'mid') midfielders += formattedPlayer;
+			if(playerPos == 'fwd') forwards += formattedPlayer;
 		});
 
 		botresponse += goalies + '\n' + defenders + '\n' + midfielders + '\n' + forwards;
