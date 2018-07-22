@@ -137,11 +137,21 @@ module.exports = function (client) {
 	functions.formatGWSchedule = function() {
 		let nextGW = client.gameweeks.get('nextgw');
 		let botresponse = '**'+nextGW.name+'**\n';
+		let dayArr = [];
 		client.fixtures.array().forEach(function(fixture){
 			var home = client.teamsMapID.get(fixture.team_h).toUpperCase();
 			var away = client.teamsMapID.get(fixture.team_a).toUpperCase();
-			botresponse += home + ' v ' +away +'\n';
+			if(dayArr[fixture.event_day]) {
+				dayArr[fixture.event_day] += home + ' v ' +away +'\n';
+			} else {
+				let dayName = fixture.kickoff_time_formatted.slice(0,-6);
+				dayArr[fixture.event_day] = '*'+dayName+'*\n';
+				dayArr[fixture.event_day] += home + ' v ' +away +'\n';
+			}
+			console.log(dayArr);
 		});
+
+		botresponse += dayArr.join('\n');
 		return botresponse;
 	},
 
