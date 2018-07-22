@@ -71,10 +71,6 @@ module.exports = function (client) {
 		});
 	},
 
-	functions.updateGameweek = function() {
-		const chron = client.schedule.scheduleJob('0 ')
-	},
-
 	functions.formatTeamName = function(team) {
 		const regex = /\b[a-zA-Z]/g;
 		return team.replace(regex, function(x){return x.toUpperCase();});
