@@ -68,7 +68,6 @@ module.exports = function (client) {
 							});
 						});
 					}
-					console.log(client.schedule.scheduledJobs);
 					console.log('FPL data updated.');
 				} catch (e) {
 					console.log('FPL API Is Down!');
