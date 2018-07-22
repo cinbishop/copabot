@@ -15,13 +15,14 @@ client.https = https;
 
 client.players = new Enmap({provider: new Provider({name: "players"})});
 client.teams = new Enmap({provider: new Provider({name: "teams"})});
+client.gameweeks = new Enmap({provider: new Provider({name: "gameweeks"})});
 
 const functions = require("./functions.js")(client);
 
 client.on("ready" , () => {
 	console.log("Kicking off.");
 	client.functions.getFPLData();
-;});
+});
 
 fs.readdir("./events/", (err, files) => {
 	if (err) return console.log(err);
@@ -47,4 +48,4 @@ fs.readdir("./commands/", (err,files) => {
 
 client.functions = functions;
 
-client.login(config.token);
+client.login(config.tokendev);

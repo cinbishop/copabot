@@ -1,28 +1,22 @@
 exports.run = (client, message, args) => {
 
-	let cmd = args.toString().toLowerCase();
-	let allowed = message.member.roles.find("name","admin"); 
+	let arg = args.join(" ").toLowerCase();
 
-	if(!allowed) message.channel.send('YOU\'RE NOT MY SUPERVISOR');
-
-	if(args == 'reset' && allowed) {
-		client.functions.setCurrentDate();
-		message.channel.send(`Current Date set to: ${client.dates.get('currentDate')}`);
+	/*! FULL LIST OF TEAMS AND ABBREVS **/
+	if(arg == "list") {
+		message.channel.send(client.functions.formatTeams());
 	}
 
-	if(args == 'dates' && allowed) {
-		currentDate = client.dates.get('currentDate');
-		lastFirstDate = client.dates.get('lastFirstDate');
-		message.channel.send(`Current Date: ${currentDate}\nLast First: ${lastFirstDate}`);
+	/*! GET SPECIFIC TEAM - BY SHORT NAME **/
+	if(client.teams.findAll('short_name',arg).length > 0) {
+		message.channel.send(client.functions.getTeam(arg));
 	}
-
-	if(args == 'lastmessage' && allowed) {
-		const lastID = client.dates.get('lastFirstId');
-		const userData = client.firstdata.get(lastID);
-		if(userData.message) {
-			message.channel.send(`**${userData.user}** said, AND I QUOTE: '${userData.message}'`);
-		} else {
-			message.channel.send('It has been lost to the sands of time.');
-		}
+	
+	/*! GET SPECIFIC TEAM - BY NAME **/
+	if(client.teams.findAll('name',arg).length > 0) {
+		let reqTeam = client.teams.findAll('name',arg);
+		/*! CONVERT TO SHORT NAME **/
+		arg = reqTeam[0].short_name;
+		message.channel.send(client.functions.getTeam(arg));
 	}
 }
