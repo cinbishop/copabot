@@ -46,9 +46,6 @@ module.exports = function (client) {
 					let nextGW = client.gameweeks.get('nextgw');
 					let nextWarnDate = new Date((nextGW.deadline_time_epoch*1000)-3600000);
 					client.gameweeks.set('nextupdate',nextWarnDate);
-					/*! GET UPDATE TIMES TO COMPARE **/
-					let lastUpdate = client.gameweeks.get('lastupdate');
-					let nextUpdate = client.gameweeks.get('nextupdate');
 					/*! CHECK FOR WARNINGS **/
 					let psWarningScheduled = client.gameweeks.get('pswarning');
 					let warningScheduled = client.gameweeks.get('warning');
