@@ -57,7 +57,7 @@ module.exports = function (client) {
 
 	functions.startChrons = function() {
 
-		const chron = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
+		const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
 			client.guilds.array().forEach(function(guild,i){
 				let nextGW = client.gameweeks.get('nextgw');
 				let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
@@ -67,7 +67,7 @@ module.exports = function (client) {
 
 		const update = client.schedule.scheduleJob('0 0 * * *', function(){
 			client.functions.getFPLData();
-			chron.reschedule(client.gameweeks.get('nextupdate'));
+			warning.reschedule(client.gameweeks.get('nextupdate'));
 		});
 	},
 
