@@ -21,7 +21,14 @@ const functions = require("./functions.js")(client);
 
 client.on("ready" , () => {
 	console.log("Kicking off.");
+	/*! GET DATA **/
 	client.functions.getFPLData();
+	/*! START CHRON TO UPDATE DATA EVERY NIGHT **/
+	const update = client.schedule.scheduleJob('0 0 * * *', function(){
+		client.functions.getFPLData();
+	});
+	client.gameweeks.set('pswarning',0);
+	client.gameweeks.set('warning',0);
 });
 
 fs.readdir("./events/", (err, files) => {
@@ -48,4 +55,4 @@ fs.readdir("./commands/", (err,files) => {
 
 client.functions = functions;
 
-client.login(config.token);
+client.login(config.tokendev);

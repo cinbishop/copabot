@@ -37,13 +37,41 @@ module.exports = function (client) {
 						client.teams.set(team.short_name.toLowerCase(),team);
 					});
 					/*! MAKE GAMEWEEKS ENMAP **/
+					let preseason = data['current-event'] == null ? true : false;
+
 					client.gameweeks.set('nextgw',data.events[data['next-event']-1]);
-					data['current-event'] == null ?	client.gameweeks.set('currentgw',data.events[0]) : client.gameweeks.set('currentgw',data.events[data['current-event']-1]);
+					preseason ?	client.gameweeks.set('currentgw',data.events[0]) : client.gameweeks.set('currentgw',data.events[data['current-event']-1]);
+
+					/*! SET NEXT UPDATE TIME **/
 					let nextGW = client.gameweeks.get('nextgw');
-					let date = new Date((nextGW.deadline_time_epoch*1000)-3600000);
-					client.gameweeks.set('nextupdate',date);
-					/*! TRIGGER CHRONS TO UPDATE DATA **/
-					client.functions.startChrons();
+					let nextWarnDate = new Date((nextGW.deadline_time_epoch*1000)-3600000);
+					client.gameweeks.set('nextupdate',nextWarnDate);
+					/*! GET UPDATE TIMES TO COMPARE **/
+					let lastUpdate = client.gameweeks.get('lastupdate');
+					let nextUpdate = client.gameweeks.get('nextupdate');
+					/*! CHECK FOR WARNINGS **/
+					let psWarningScheduled = client.gameweeks.get('pswarning');
+					let warningScheduled = client.gameweeks.get('warning');
+					/*! TRIGGER CHRON TO UPDATE WARNING **/
+					if(preseason && psWarningScheduled == 0) {
+						client.gameweeks.set('pswarning',1);
+						const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
+							client.guilds.array().forEach(function(guild){
+								let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
+								defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
+							});
+						});
+					} else if(!preseason && warningScheduled == 0) {
+						client.gameweeks.set('warning',1);
+						const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
+							client.gameweeks.set('warning',0);
+							client.guilds.array().forEach(function(guild){
+								let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
+								defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
+							});
+						});
+					}
+					console.log(client.schedule.scheduledJobs);
 					console.log('FPL data updated.');
 				} catch (e) {
 					console.log('FPL API Is Down!');
@@ -55,19 +83,27 @@ module.exports = function (client) {
 		});
 	},
 
-	functions.startChrons = function() {
+	/*! TODO: REVISIT THIS AFTER FIRST GW AND YOU CAN SEE HOW THE DATA IS STRUCTURED **/
+	functions.getLeagueData = function() {
+		let requestUrl = 'https://fantasy.premierleague.com/drf/leagues-classic-standings/114228';
 
-		const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
-			client.guilds.array().forEach(function(guild,i){
-				let nextGW = client.gameweeks.get('nextgw');
-				let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
-				defaultChan.send('**'+nextGW.name+'** locks in 1 hour!');
+		client.https.get(requestUrl, (resp) => {
+			let data = '';
+
+			resp.on("data",(chunk) => {
+				data += chunk;
 			});
-		});
 
-		const update = client.schedule.scheduleJob('0 0 * * *', function(){
-			client.functions.getFPLData();
-			warning.reschedule(client.gameweeks.get('nextupdate'));
+			resp.on("end",() => {
+				try {
+					console.log('League data updated.');
+				} catch (e) {
+					console.log('League API Is Down!');
+				}
+
+			}).on("error",(err) => {
+				console.log('Error: ' + err.message);
+			});
 		});
 	},
 
