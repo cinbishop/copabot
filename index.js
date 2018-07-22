@@ -16,6 +16,7 @@ client.https = https;
 client.players = new Enmap({provider: new Provider({name: "players"})});
 client.teams = new Enmap({provider: new Provider({name: "teams"})});
 client.gameweeks = new Enmap({provider: new Provider({name: "gameweeks"})});
+client.chrons = {};
 
 const functions = require("./functions.js")(client);
 
