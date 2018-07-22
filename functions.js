@@ -40,24 +40,20 @@ module.exports = function (client) {
 						client.fixtures.set(i,fixture);
 					});
 					/*! MAKE TEAM AND POSITION MAPS **/
-					var teamsMapID = new Map();
-					var posMapID = new Map();
-					var teamsMapName = new Map();
-					var posMapName = new Map();
+					var teamsMap = new Map();
+					var posMap = new Map();
 
-					client.teamsMapID = teamsMapID;
-					client.posMapID = posMapID;
-					client.teamsMapName = teamsMapName;
-					client.posMapName = posMapName;
+					client.teamsMap = teamsMap;
+					client.posMap = posMap;
 
 					client.teams.array().forEach(function(team){
-						client.teamsMapID.set(team.id, team.short_name);
-						client.teamsMapName.set(team.short_name,team.id);
+						client.teamsMap.set(team.id, team.short_name);
+						client.teamsMap.set(team.short_name,team.id);
 					});
 
 					data.element_types.forEach(function(pos){
-						client.posMapID.set(pos.id, pos.singular_name_short.toLowerCase());
-						client.posMapName.set(pos.singular_name_short.toLowerCase(),pos.id);
+						client.posMap.set(pos.id, pos.singular_name_short.toLowerCase());
+						client.posMap.set(pos.singular_name_short.toLowerCase(),pos.id);
 					});
 
 					/*! MAKE GAMEWEEKS ENMAP **/
@@ -140,8 +136,8 @@ module.exports = function (client) {
 		let botresponse = '**'+nextGW.name+'**\n';
 		let dayArr = [];
 		client.fixtures.array().forEach(function(fixture){
-			var home = client.teamsMapID.get(fixture.team_h).toUpperCase();
-			var away = client.teamsMapID.get(fixture.team_a).toUpperCase();
+			var home = client.teamsMap.get(fixture.team_h).toUpperCase();
+			var away = client.teamsMap.get(fixture.team_a).toUpperCase();
 			if(dayArr[fixture.event_day]) {
 				dayArr[fixture.event_day] += home + ' v ' +away +'\n';
 			} else {
@@ -149,7 +145,6 @@ module.exports = function (client) {
 				dayArr[fixture.event_day] = '*'+dayName+'*\n';
 				dayArr[fixture.event_day] += home + ' v ' +away +'\n';
 			}
-			console.log(dayArr);
 		});
 
 		botresponse += dayArr.join('\n');
@@ -158,17 +153,17 @@ module.exports = function (client) {
 
 	functions.getTeam = function(team) {
 		const reqTeam = client.teams.get(team);
-		const teamID = client.teamsMapName.get(team);
+		const teamID = client.teamsMap.get(team);
 		let botresponse = '**'+client.functions.formatTeamName(reqTeam.name)+' - '+ reqTeam.short_name.toUpperCase() +'**\n\n';
-		let goalies = '**GKP**\n'; 
-		let defenders = '**DEF**\n';
-		let midfielders = '**MID**\n';
-		let forwards = '**FWD**\n';
+		let goalies = '*GKP*\n'; 
+		let defenders = '*DEF*\n';
+		let midfielders = '*MID*\n';
+		let forwards = '*FWD*\n';
 
 		const teamPlayers = client.players.findAll('team',teamID);
 		teamPlayers.forEach(function(player){
 			let formattedPlayer = player.web_name + ' - £' + client.functions.formatPrice(player.now_cost.toString()) + '\n';
-			let playerPos = client.posMapID.get(player.element_type);
+			let playerPos = client.posMap.get(player.element_type);
 			if(playerPos == 'gkp') goalies += formattedPlayer;
 			if(playerPos == 'def') defenders += formattedPlayer;
 			if(playerPos == 'mid') midfielders += formattedPlayer;
