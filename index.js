@@ -4,6 +4,7 @@ const Provider = require("enmap-sqlite");
 const Schedule = require("node-schedule");
 const https = require("https");
 const fs = require("fs");
+const path = require('path');
 
 const client = new Discord.Client();
 const config = require("./auth.json");
@@ -33,7 +34,7 @@ client.on("ready" , () => {
 	client.user.setActivity('!help for a list of commands', { type: 'PLAYING' });
 });
 
-fs.readdir("./events/", (err, files) => {
+fs.readdir(path.join(__dirname,"events"), (err, files) => {
 	if (err) return console.log(err);
 	files.forEach(file => {
 		const event = require(`./events/${file}`);
@@ -44,7 +45,7 @@ fs.readdir("./events/", (err, files) => {
 
 client.commands = new Enmap();
 
-fs.readdir("./commands/", (err,files) => {
+fs.readdir(path.join(__dirname,"commands"), (err, files) => {
 	if (err) return console.log(err);
 	files.forEach(file => {
 		if(!file.endsWith(".js")) return;
