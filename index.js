@@ -17,6 +17,7 @@ client.https = https;
 client.players = new Enmap({provider: new Provider({name: "players"})});
 client.teams = new Enmap({provider: new Provider({name: "teams"})});
 client.gameweeks = new Enmap({provider: new Provider({name: "gameweeks"})});
+client.members = new Enmap({provider: new Provider({name: "members"})});
 client.fixtures = new Enmap();
 
 const functions = require("./functions.js")(client);
@@ -58,4 +59,4 @@ fs.readdir(path.join(__dirname,"commands"), (err, files) => {
 
 client.functions = functions;
 
-client.login(config.token);
+client.login(config.tokendev);

@@ -112,6 +112,29 @@ module.exports = function (client) {
 		});
 	},
 
+	functions.getMemberData = function(message, teamID) {
+		let requestUrl = 'https://fantasy.premierleague.com/drf/entry/'+teamID;
+
+		client.https.get(requestUrl, (resp) => {
+			let data = '';
+
+			resp.on("data",(chunk) => {
+				data += chunk;
+			});
+
+			resp.on("end",() => {
+				try {
+					const key = message.author.id;
+					client.members.set(key, data);
+				} catch (e) {
+					console.log('Entry API is Down!');
+				}
+			}).on("error",(err) => {
+				console.log('Error: ' + err.message);
+			});	
+		})
+	}
+
 	functions.formatTeamName = function(team) {
 		const regex = /\b[a-zA-Z]/g;
 		return team.replace(regex, function(x){return x.toUpperCase();});
