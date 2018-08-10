@@ -2,6 +2,7 @@ module.exports = function (client) {
 	var functions = {};
 
 	functions.warningChron = function(reset) {
+		let nextGW = client.gameweeks.get('nextgw');
 		const warning = client.schedule.scheduleJob(client.gameweeks.get('nextupdate'), function(){
 			client.guilds.array().forEach(function(guild){
 				if(reset) client.gameweeks.set('warning',0);
