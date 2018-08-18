@@ -1,5 +1,4 @@
 exports.run = (client, message, args) => {
-
 	let botresponse = '';
 	botresponse += '**!team [team short name|team web name]**\n';
 	botresponse += 'Returns a list of team short names and team web names for reference. Optional team arguement returns specific team information.\n';

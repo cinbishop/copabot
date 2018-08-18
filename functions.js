@@ -7,7 +7,8 @@ module.exports = function (client) {
 			client.guilds.array().forEach(function(guild){
 				if(reset) client.gameweeks.set('warning',0);
 				let defaultChan = guild.channels.find(c=>c.permissionsFor(guild.me).has('SEND_MESSAGES'));
-				defaultChan.send('@FEPL **'+nextGW.name+'** locks in 1 hour!');
+				let role = guild.roles.find('name','FEPL');
+				defaultChan.send(role+' **'+nextGW.name+'** locks in 1 hour!');
 			});
 		});
 	},
